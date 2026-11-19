@@ -61,7 +61,9 @@ only").
    ```
 
    It prints up to eight catalog searches, one JSON line each (`course`, `title`, `edition`, `url`), for paid books
-   not checked yet, required ones first. Open each `url` in the browser, without signing in, and read the results:
+   not checked yet, required ones first. Open each `url` in the browser, without signing in, and read the results.
+   Use the browser, not a web search or page read: the catalog is a JavaScript app, and fetching it any other way
+   returns an empty page. Wait a few seconds for the results to load before reading them.
    - Count only results that are the same book: resource type BOOK (not audio or video), the same main title (a
      subtitle may differ), the same edition when one is given, and not a study guide or solutions manual. Open a
      result to see its edition if the list does not show it.
@@ -85,7 +87,9 @@ only").
    library findings into plain lines, flags access codes, inclusive access and course readers, and prints the reply
    text. It needs no setup or key (Python standard library only).
 
-   Then reply with the script's text (see "Replies"). Use only the ISBNs, links and facts it printed.
+   Then send the script's text as the reply (see "Replies"). You may translate it into the student's language,
+   but do not shorten it or drop anything: every price-comparison link, library link and warning stays. Use only
+   the ISBNs, links and facts it printed.
 
 6. **Courses with no book list.** The script names them ("couldn't find a book list"). Ask for a screenshot of the
    bookstore list for those courses; when it arrives, read it, add the books to `books.json` and run steps 4 and 5 again.

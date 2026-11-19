@@ -127,6 +127,11 @@ only").
 
 ## Replies
 
+In every answer about a book the student may need to buy, including a short answer about one course and a reply
+to "send me a free PDF", include that book's price-comparison link from the script, on its own line. When there is
+no free copy, say what the cheapest legal routes are (an older edition if the syllabus allows it, the library, the
+comparison link) instead of stopping at "I couldn't find one".
+
 Keep it short and plain, no Markdown. One course per block, links on their own line. Lead with the count of books
 and how many are free. If there are more than six courses or twelve books, add `--full-text <working folder>/full.txt`
 to the run command: it prints a one-screen summary to text, and writes the full list to `full.txt`. Make a PDF from

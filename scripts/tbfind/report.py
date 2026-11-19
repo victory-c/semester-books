@@ -57,8 +57,11 @@ def resolve_book(book, school, do_lookup=True, oer_hint=False):
         "access_code": bool(book.get("access_code")),
         "courseware": book.get("courseware"),
         "free": free,
+        # A custom (school-specific) edition is not sold elsewhere, so its ISBN finds no prices; when other
+        # editions are allowed, compare the regular book by title instead.
         "compare_url": None if free else links.compare_link(
-            isbn, " ".join(x for x in (title, _ed(book["edition"]) + "ition" if book.get("edition") else None) if x),
+            None if (book.get("custom") and book.get("older_edition_ok")) else isbn,
+            " ".join(x for x in (_strip_custom(title), _ed(book["edition"]) + "ition" if book.get("edition") else None) if x),
             book.get("author")),
         "library_url": links.library_link(school, isbn, title),
         "older_editions": info.get("older_editions") or [],
@@ -99,6 +102,11 @@ def build(courses, school=None, do_lookup=True):
                      "library_ebook": n_lib,
                      "need_input": [c["course"] for c in out["courses"] if c["state"] == "not_found"]}
     return out
+
+
+def _strip_custom(title):
+    import re
+    return re.sub(r"\s*(?:for|:)\s*(?:UC\s+)?Berkeley\b.*$|\s*\(?custom edition\)?", "", title or "", flags=re.I).strip() or title
 
 
 def _ed(n):
@@ -161,7 +169,10 @@ def to_text(result):
             if b["access_code"]:
                 tool = b["courseware"] or "the online homework"
                 lines.append(f"  Needs an access code for {tool}. A used copy won't include one; buying the code alone from the publisher is often cheapest.")
-            if b["custom"]:
+            if b["custom"] and b["older_edition_ok"]:
+                lines.append("  This is a custom edition, sold only at the campus bookstore. Other editions are allowed, "
+                             "so the price link below searches the regular book.")
+            elif b["custom"]:
                 lines.append("  This is a custom edition, usually sold only at the campus bookstore.")
             want = b["edition_asked"] or b["edition_found"]
             if b["older_edition_ok"]:

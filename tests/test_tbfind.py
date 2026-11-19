@@ -135,6 +135,15 @@ class Library(unittest.TestCase):
         txt = report.to_text(self._build({"Book A": None}))
         self.assertIn("Library check", txt)
 
+    def test_custom_edition_compares_regular_book(self):
+        res = report.build([{"course": "MATH 54", "flags": {}, "books": [
+            {"title": "Linear Algebra and Differential Equations for UC Berkeley", "author": "Lay", "edition": 2,
+             "isbns": ["9780137114030"], "custom": True, "older_edition_ok": True}]}], school="berkeley", do_lookup=False)
+        b = res["courses"][0]["books"][0]
+        self.assertIn("search.php", b["compare_url"])
+        self.assertNotIn("Berkeley", b["compare_url"])
+        self.assertIn("searches the regular book", report.to_text(res))
+
     def test_bad_library_status_rejected(self):
         with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as f:
             json.dump({"courses": [{"course": "X", "books": [{"title": "T", "library": {"status": "maybe"}}]}]}, f)

@@ -1,0 +1,327 @@
+{
+ "courses": [
+  {
+   "course": "asu_bio181_lisenbee",
+   "books": [
+    {
+     "title": "Biological Science",
+     "author": "Freeman",
+     "edition": 8,
+     "status": "required",
+     "access_code": true,
+     "courseware": "Mastering"
+    },
+    {
+     "title": "Investigating Biology Lab Manual",
+     "author": "Morgan",
+     "edition": 9,
+     "status": "required",
+     "access_code": false
+    }
+   ],
+   "inclusive_access": true
+  },
+  {
+   "course": "asu_chm113_hansen",
+   "books": [
+    {
+     "title": "Chemistry 2e",
+     "author": "OpenStax",
+     "status": "required",
+     "access_code": false
+    },
+    {
+     "title": "Aktiv Learning access",
+     "status": "required",
+     "access_code": true,
+     "courseware": "Aktiv Learning",
+     "kind": "courseware"
+    }
+   ]
+  },
+  {
+   "course": "asu_chm113_szeto",
+   "books": [
+    {
+     "title": "Chemistry: The Molecular Nature of Matter and Change",
+     "author": "Silberberg",
+     "edition": 10,
+     "status": "required",
+     "access_code": true,
+     "courseware": "ALEKS"
+    },
+    {
+     "title": "Labflow Complete",
+     "status": "required",
+     "access_code": true,
+     "courseware": "Labflow",
+     "kind": "courseware"
+    },
+    {
+     "title": "Student Solutions Manual for Chemistry: The Molecular Nature of Matter and Change",
+     "status": "optional",
+     "access_code": false
+    },
+    {
+     "title": "Study Guide for Chemistry: The Molecular Nature of Matter and Change",
+     "status": "optional",
+     "access_code": false
+    }
+   ],
+   "inclusive_access": true
+  },
+  {
+   "course": "asu_ecn211_cox",
+   "books": [
+    {
+     "title": "Macroeconomics",
+     "author": "Krugman",
+     "edition": 7,
+     "status": "required",
+     "access_code": true,
+     "courseware": "Achieve"
+    }
+   ],
+   "inclusive_access": true
+  },
+  {
+   "course": "asu_eng200_austin",
+   "books": [
+    {
+     "title": "Theory Into Practice: An Introduction to Literary Criticism",
+     "author": "Dobie",
+     "edition": 4,
+     "status": "required",
+     "access_code": false
+    },
+    {
+     "title": "How to Read Literature Like a Professor",
+     "author": "Foster",
+     "status": "required",
+     "access_code": false
+    },
+    {
+     "title": "Harry Potter and the Sorcerer's Stone",
+     "author": "Rowling",
+     "status": "required",
+     "access_code": false
+    },
+    {
+     "title": "Big in Japan: Accidental Sumo",
+     "author": "Griffith",
+     "status": "required",
+     "access_code": false
+    },
+    {
+     "title": "Ready Player One",
+     "author": "Cline",
+     "status": "required",
+     "access_code": false
+    }
+   ]
+  },
+  {
+   "course": "asu_mat265_inozemtseva",
+   "books": [
+    {
+     "title": "Essential Calculus: Early Transcendentals",
+     "author": "Stewart",
+     "edition": 2,
+     "status": "recommended",
+     "access_code": false
+    }
+   ]
+  },
+  {
+   "course": "asu_phy121_peng",
+   "books": [
+    {
+     "title": "University Physics",
+     "author": "Young",
+     "edition": 15,
+     "status": "required",
+     "access_code": true,
+     "courseware": "Mastering",
+     "older_edition_ok": true
+    },
+    {
+     "title": "MasteringPhysics Access Card for University Physics",
+     "isbn": "9780135206348",
+     "edition": 15,
+     "status": "required",
+     "access_code": true,
+     "courseware": "Mastering",
+     "kind": "courseware"
+    }
+   ],
+   "inclusive_access": true
+  },
+  {
+   "course": "asu_psy101_maisano",
+   "books": [
+    {
+     "title": "Psychology: Themes and Variations",
+     "author": "Weiten",
+     "edition": 11,
+     "isbn": "9780357374825",
+     "status": "required",
+     "access_code": true,
+     "courseware": "MindTap"
+    }
+   ],
+   "inclusive_access": true
+  },
+  {
+   "course": "berkeley_cs70",
+   "books": [],
+   "no_textbook": true
+  },
+  {
+   "course": "berkeley_english90",
+   "books": [
+    {
+     "title": "Persuasion",
+     "author": "Austen",
+     "status": "unspecified",
+     "access_code": false
+    },
+    {
+     "title": "Krapp's Last Tape",
+     "author": "Beckett",
+     "status": "unspecified",
+     "access_code": false
+    },
+    {
+     "title": "James",
+     "author": "Everett",
+     "status": "unspecified",
+     "access_code": false
+    },
+    {
+     "title": "How to Get Filthy Rich in Rising Asia",
+     "author": "Hamid",
+     "status": "unspecified",
+     "access_code": false
+    },
+    {
+     "title": "No One Is Talking About This",
+     "author": "Lockwood",
+     "status": "unspecified",
+     "access_code": false
+    },
+    {
+     "title": "Nightingale",
+     "author": "Rekdal",
+     "status": "unspecified",
+     "access_code": false
+    },
+    {
+     "title": "Twilight: Los Angeles",
+     "author": "Smith",
+     "status": "unspecified",
+     "access_code": false
+    },
+    {
+     "title": "Dracula",
+     "author": "Stoker",
+     "status": "unspecified",
+     "access_code": false
+    }
+   ]
+  },
+  {
+   "course": "berkeley_isf110",
+   "books": [
+    {
+     "title": "The Double Helix",
+     "author": "Watson",
+     "status": "unspecified",
+     "access_code": false
+    },
+    {
+     "title": "The Soul of a New Machine",
+     "author": "Kidder",
+     "status": "unspecified",
+     "access_code": false
+    },
+    {
+     "title": "Bad Blood",
+     "author": "Carreyrou",
+     "status": "unspecified",
+     "access_code": false
+    }
+   ]
+  },
+  {
+   "course": "berkeley_law202_advocacy",
+   "books": [
+    {
+     "title": "Course reader",
+     "status": "unspecified",
+     "access_code": false,
+     "kind": "reader"
+    }
+   ]
+  },
+  {
+   "course": "berkeley_math51",
+   "books": [
+    {
+     "title": "Single Variable Calculus: Early Transcendentals for UC Berkeley",
+     "author": "Stewart",
+     "edition": 8,
+     "isbn": "9781305765276",
+     "status": "required",
+     "access_code": false,
+     "custom": true
+    }
+   ]
+  },
+  {
+   "course": "purdue_hist371",
+   "books": [
+    {
+     "title": "The Pop, Rock, and Soul Reader: Histories and Debates",
+     "author": "Brackett",
+     "edition": 4,
+     "status": "required",
+     "access_code": false
+    },
+    {
+     "title": "What's That Sound? An Introduction to Rock and Its History",
+     "author": "Covach",
+     "edition": 6,
+     "status": "required",
+     "access_code": false,
+     "older_edition_ok": true
+    }
+   ]
+  },
+  {
+   "course": "purdue_hist395",
+   "books": [
+    {
+     "title": "My Country Africa",
+     "author": "Blouin",
+     "status": "required",
+     "access_code": false,
+     "provided": true
+    },
+    {
+     "title": "Chittagong Armory Raiders: Reminiscences",
+     "author": "Dutta",
+     "status": "required",
+     "access_code": false,
+     "provided": true
+    },
+    {
+     "title": "Inside the Battle of Algiers",
+     "author": "Driff",
+     "status": "required",
+     "access_code": false,
+     "provided": true
+    }
+   ]
+  }
+ ]
+}

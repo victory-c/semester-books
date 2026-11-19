@@ -1,0 +1,12 @@
+MATH 1A: Calculus — Fall 2026 (sample syllabus written for testing)
+Instructor: Prof. Example   Office Hours: Tue 2-4pm
+
+Course Description
+Limits, derivatives, and integrals of functions of one variable.
+
+Required Text:
+- James Stewart, Calculus: Early Transcendentals, 8th edition, Cengage. ISBN 978-1-285-74155-0
+Homework is done on WebAssign. You will need a WebAssign access code (sold with the eBook or separately).
+
+Grading
+Homework 20%, Midterms 40%, Final 40%

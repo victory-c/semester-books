@@ -1,0 +1,6 @@
+COMPSCI 61A (sample syllabus)
+
+Lectures: MWF 2-3pm
+Week 1: Functions
+Week 2: Higher-order functions
+Grading: projects 40%, exams 60%

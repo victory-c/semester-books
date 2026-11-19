@@ -1,0 +1,12 @@
+{
+  "school": "berkeley",
+  "courses": [
+    {"course": "CHEM 1A", "books": [
+      {"title": "Chemistry: The Central Science", "author": "Brown", "edition": 14, "status": "required",
+       "access_code": true, "courseware": "Mastering"}
+    ]},
+    {"course": "MATH 54", "books": [
+      {"isbn": "9781285741550", "title": "Calculus: Early Transcendentals", "status": "recommended"}
+    ]}
+  ]
+}

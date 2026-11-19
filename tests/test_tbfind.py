@@ -142,6 +142,9 @@ class Library(unittest.TestCase):
         b = res["courses"][0]["books"][0]
         self.assertIn("search.php", b["compare_url"])
         self.assertNotIn("Berkeley", b["compare_url"])
+        self.assertTrue(b["compare_url"].endswith("query=Linear+Algebra+and+Differential+Equations+Lay"), b["compare_url"])
+        self.assertEqual(report._surname("Lay–Nagle–Saff–Snider"), "Lay")
+        self.assertEqual(report._surname("Freeman et al."), "Freeman")
         self.assertIn("searches the regular book", report.to_text(res))
 
     def test_bad_library_status_rejected(self):

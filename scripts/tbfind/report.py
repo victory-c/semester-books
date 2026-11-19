@@ -59,10 +59,12 @@ def resolve_book(book, school, do_lookup=True, oer_hint=False):
         "free": free,
         # A custom (school-specific) edition is not sold elsewhere, so its ISBN finds no prices; when other
         # editions are allowed, compare the regular book by title instead.
-        "compare_url": None if free else links.compare_link(
-            None if (book.get("custom") and book.get("older_edition_ok")) else isbn,
-            " ".join(x for x in (_strip_custom(title), _ed(book["edition"]) + "ition" if book.get("edition") else None) if x),
-            book.get("author")),
+        "compare_url": None if free else (
+            links.compare_link(None, _strip_custom(title), _surname(book.get("author")))
+            if (book.get("custom") and book.get("older_edition_ok")) else
+            links.compare_link(
+                isbn, " ".join(x for x in (title, _ed(book["edition"]) + "ition" if book.get("edition") else None) if x),
+                book.get("author"))),
         "library_url": links.library_link(school, isbn, title),
         "older_editions": info.get("older_editions") or [],
         "older_edition_ok": bool(book.get("older_edition_ok")),
@@ -102,6 +104,13 @@ def build(courses, school=None, do_lookup=True):
                      "library_ebook": n_lib,
                      "need_input": [c["course"] for c in out["courses"] if c["state"] == "not_found"]}
     return out
+
+
+def _surname(author):
+    """First author's surname: "Lay–Nagle–Saff–Snider" -> "Lay", "Freeman et al." -> "Freeman"."""
+    import re
+    first = re.split(r"\s*(?:[–—,&;]|-(?=[A-Z])|\band\b|\bet al\b)\s*", author or "")[0].strip(" .")
+    return first.split()[-1] if first else None
 
 
 def _strip_custom(title):

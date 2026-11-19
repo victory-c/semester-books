@@ -65,7 +65,7 @@ def load_books_json(path):
                 fail(f"courses[{i}].books[{j}].status must be one of {sorted(report.STATUS_ORDER)}", 2)
             books.append(dict(b, isbns=[b["isbn"]] if b.get("isbn") else []))
         flags = dict(c.get("flags") or {})
-        for k in ("no_textbook", "inclusive_access", "see_bookstore", "course_reader"):
+        for k in ("no_textbook", "inclusive_access", "see_bookstore", "course_reader", "syllabus_empty"):
             if k in c:
                 flags[k] = bool(c[k])
         # The agent may also pass the syllabus text; rules double-check what it wrote.

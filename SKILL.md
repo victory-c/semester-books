@@ -49,6 +49,8 @@ only").
      `provided: true`, with `url` if the syllabus gives one.
    - Leave out free short readings (articles, short stories, handouts posted in Canvas).
    - Course-level facts: `no_textbook: true` when the syllabus says there is no book to buy;
+     `syllabus_empty: true` when the course's syllabus in Canvas has no content (only a title) and you found no
+     syllabus file, so you cannot tell (never guess "no textbook" from that);
      `inclusive_access: true` when materials are billed automatically (inclusive access, first-day access, "the
      bookstore will bill your account").
    - Put the course's syllabus text in `syllabus_text` if it is short enough; the script double-checks it. A course

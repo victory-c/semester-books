@@ -147,6 +147,12 @@ class Library(unittest.TestCase):
         self.assertEqual(report._surname("Freeman et al."), "Freeman")
         self.assertIn("searches the regular book", report.to_text(res))
 
+    def test_empty_syllabus_wording(self):
+        res = report.build([{"course": "ENGIN 183A", "books": [], "flags": {"syllabus_empty": True}}], do_lookup=False)
+        txt = report.to_text(res)
+        self.assertIn("syllabus for this course is empty in Canvas", txt)
+        self.assertNotIn("No textbook to buy", txt)
+
     def test_bad_library_status_rejected(self):
         with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as f:
             json.dump({"courses": [{"course": "X", "books": [{"title": "T", "library": {"status": "maybe"}}]}]}, f)

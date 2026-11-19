@@ -145,7 +145,10 @@ def to_text(result):
         elif c["state"] == "not_found":
             if f.get("courseware"):
                 lines.append(f"No book listed, but it uses {', '.join(f['courseware'])}, which usually needs a paid access code.")
-            if f.get("see_bookstore"):
+            if f.get("syllabus_empty"):
+                lines.append("The syllabus for this course is empty in Canvas, so I can't tell whether you need a book. "
+                             "If you have the syllabus or the bookstore list, send it and I'll check.")
+            elif f.get("see_bookstore"):
                 lines.append("The syllabus just points to the bookstore list. Send me a screenshot of it for this one?")
             else:
                 lines.append("I couldn't find a book list in the syllabus. Send me a screenshot of the bookstore list for this one?")

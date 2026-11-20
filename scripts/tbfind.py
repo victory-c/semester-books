@@ -39,10 +39,29 @@ def load_syllabus(spec):
     return extract.extract(raw, course=name)
 
 
-URL_RE = re.compile(r"(?:https?://|www\.)\S+", re.I)
+URL_RE = re.compile(r"(?:https?://|www\.)[^\s)\]]+", re.I)
 # Shadow libraries / file-sharing sites: never repeated to the student, whatever the syllabus or agent wrote.
 BLOCKED = re.compile(r"libgen|library\s*genesis|z-?lib|1lib|annas?-?archive|anna's archive|welib|pdfdrive|"
                      r"sci-?hub|b-ok\.|bookfi|ebook-?hunter|vk\.com", re.I)
+
+
+# Text that should never reach the student from a book field: download offers and instructions aimed at Cubbie.
+SUSPECT = re.compile(r"free\s*(?:pdf|download|e-?book)|\bdownload (?:it|the|here|link|from)\b|\btorrents?\b|"
+                     r"tell the student|ignore (?:the|all|previous)|\binstructions? (?:for|to)\b|"
+                     r"you (?:must|should) (?:send|tell|say)", re.I)
+
+
+def _clean_text(v):
+    """Drop links, and any part of the text (split at brackets, dashes, ; or |) that names a blocked site or reads
+    like an instruction; keep the rest."""
+    v = URL_RE.sub(" ", v)
+    v = re.sub(r"[(\[]\s*(?:see|at|from|via|on)?\s*[)\]]", " ", v, flags=re.I)   # brackets left empty by a link
+    parts = re.split(r"\s*(?:[()\[\];|]|\s[-–—]\s|\s[-–—]$)\s*", v)
+    bad = [p for p in parts if BLOCKED.search(p) or SUSPECT.search(p)]
+    if not bad:
+        return " ".join(v.split()).strip(" -:,;") or None   # nothing to drop: keep the original punctuation
+    keep = [p for p in parts if p.strip() and p not in bad]
+    return " ".join(" ".join(keep).split()).strip(" -:,;") or None
 
 
 def _clean_book(b, where):
@@ -56,9 +75,7 @@ def _clean_book(b, where):
         b["edition"] = n
     for k in ("title", "author", "courseware", "publisher", "note", "raw"):
         if isinstance(b.get(k), str):
-            v = URL_RE.sub("", b[k])
-            v = BLOCKED.sub("", v) if BLOCKED.search(v) else v
-            b[k] = " ".join(v.split()).strip(" -:,;") or None
+            b[k] = _clean_text(b[k])
     if b.get("url") and BLOCKED.search(str(b["url"])):
         b["url"] = None
     if not (b.get("title") or b.get("isbn") or b.get("kind") == "reader"):
@@ -148,6 +165,8 @@ def main(argv=None):
     for c in courses:
         c["books"] = [_clean_book(b, c["course"] or "book") for b in c["books"]]
     result = report.build(courses, school=school, do_lookup=not a.no_lookup)
+    if result.get("lookup_failed"):
+        print(f"tbfind: stopped online lookups for this run ({result['lookup_failed']})", file=sys.stderr)
     if a.json:
         os.makedirs(os.path.dirname(os.path.abspath(a.json)), exist_ok=True)
         with open(a.json, "w") as f:

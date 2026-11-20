@@ -270,9 +270,17 @@ def to_summary(result):
         label = first["title"] or first.get("courseware") or "a book"
         if coded and first["kind"] == "book" and first.get("courseware"):
             label += f" (code: {first['courseware']})"
-        if len(paid) > 1:
-            label += f" + {len(paid) - 1} more"
-        (code if coded else buy).append(f"{name}: {label}")
+        if coded:
+            if len(coded) > 1:
+                label += f" + {len(coded) - 1} more"
+            code.append(f"{name}: {label}")
+            rest = [b for b in paid if not b["access_code"]]
+            if rest:   # books without a code in the same course still go under "To buy"
+                buy.append(f"{name}: {rest[0]['title'] or 'a book'}" + (f" + {len(rest) - 1} more" if len(rest) > 1 else ""))
+        else:
+            if len(paid) > 1:
+                label += f" + {len(paid) - 1} more"
+            buy.append(f"{name}: {label}")
     lines = [f"Your {t['courses']} courses: {t['books']} books to look at. Full list with links is in the PDF."]
     if result.get("lookup_failed"):
         lines.append(LOOKUP_FAILED)

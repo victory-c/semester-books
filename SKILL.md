@@ -1,6 +1,6 @@
 ---
 name: semester-books
-description: Use when a student asks what books or materials their courses need, whether to buy a book, or right after Canvas first syncs; lists books, editions, access codes, free copies and price links. Reads the Canvas syllabi; legal sources only.
+description: Use when a student asks what books or materials their courses need or whether to buy a book; lists books, editions, access codes, free copies and price links. Reads the Canvas syllabi; legal sources only.
 ---
 
 # Semester Books
@@ -13,9 +13,9 @@ links to a price-comparison page.
 - "What books do I need this semester?"
 - "Do I have to buy anything for CHEM 1A?"
 - "Is there a textbook for my econ class?"
-- Right after the student connects Canvas and the first sync is done, offer it once: "Want me to list the books for
-  your classes this term?"
 - A photo of a bookstore book list or a syllabus.
+
+Only when the student asks; don't bring it up on your own (not after the first Canvas sync either).
 
 Do not use it to summarize a book or make study notes. Never use it to find unauthorized copies (see "Legal routes
 only").

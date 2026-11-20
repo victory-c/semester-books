@@ -121,4 +121,5 @@ Never buy, rent or check out anything for the student.
 If Open Library is unreachable, rate-limited or slow, the script stops calling it for that run (it gives the network
 about 30 seconds in total), still prints the list, and says plainly that some editions and ISBNs aren't confirmed. Send
 that line as it is. Don't rerun in a loop; offer to check again later.
+If stderr says it skipped an entry in a course after cleaning, ask the student for that course's bookstore list.
 Never fill in an ISBN or a price yourself.

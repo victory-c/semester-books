@@ -21,7 +21,7 @@ CACHE_TTL = 7 * 24 * 3600   # book metadata barely changes
 _last_call = [0.0]
 OFFLINE = os.environ.get("TBFIND_OFFLINE") == "1"
 TIMEOUT = 6            # seconds per request
-BUDGET = 60            # seconds of network time for one run; after that, finish with what we have
+BUDGET = 30            # seconds of network time for one run; after that, finish with what we have
 _state = {"down": None, "started": None}   # down: why the network was given up on (shared by the whole run)
 
 

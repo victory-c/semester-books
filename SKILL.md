@@ -1,13 +1,12 @@
 ---
 name: semester-books
-description: Use when a student asks what books or materials their courses need, whether to buy a book, or right after Canvas first syncs; lists books, editions, access codes, free copies and price links. It reads the syllabi in Canvas, confirms editions, flags access codes and inclusive access, finds free and library copies, and links to a price-comparison page.
+description: Use when a student asks what books or materials their courses need, whether to buy a book, or right after Canvas first syncs; lists books, editions, access codes, free copies and price links. Reads the Canvas syllabi; legal sources only.
 ---
 
 # Semester Books
 
-Finding out which books a term needs means opening every syllabus, working out the edition and checking for access
-codes. This Skill does that from the student's Canvas in one go and texts back one short list. It does not compare
-prices itself: it links to a price-comparison page and the student checks there.
+Reads every syllabus in the student's Canvas and texts back one short list of books. It never quotes prices: it
+links to a price-comparison page.
 
 ## When to use
 
@@ -31,30 +30,14 @@ only").
 2. **Read each course's book list.** For each course, read the syllabus page, and search the course files and pages
    for "syllabus", "textbook", "required materials" or "course materials"; read the PDF if the syllabus is a file.
    Save the syllabus text of each course in the working folder.
+   The course overview cuts the syllabus text at about 2,000 characters. If it ends cut off ("…") with no book list
+   yet, read the files it links to, then the course files and modules for a syllabus PDF. If none has the list, mark
+   the course for a bookstore screenshot (step 6); don't guess from the cut text.
 
-3. **Write the book list file** `books.json` in the working folder (format below). Write down only what the
-   syllabus says; never guess an ISBN or an edition, leave it out. For each course:
-   - Every book the student is told to get: title, author (the first author's surname is enough), edition,
-     ISBN, and `status` from the syllabus wording (required, recommended, optional; `unspecified` if it does not
-     say). Include lab manuals and study guides the syllabus names. Include a book that appears only in the
-     reading schedule, as `unspecified`.
-   - `access_code: true` and `courseware` when the book comes with paid online homework (WebAssign, MyLab,
-     Mastering, Connect, ALEKS, Achieve...), even if the syllabus says "no access code" but the platform is
-     billed or required.
-   - A paid platform that is not a book (Labflow, iClicker, Aktiv, an access card sold alone): its own entry with
-     `kind: "courseware"`. A course reader or coursepack: an entry with `kind: "reader"`.
-   - `older_edition_ok: true` when the syllabus says earlier editions are fine; `custom: true` for a school-specific
-     custom edition.
-   - A book the course gives out free (posted in Canvas, linked on archive.org or the publisher's open site):
-     `provided: true`, with `url` if the syllabus gives one.
-   - Leave out free short readings (articles, short stories, handouts posted in Canvas).
-   - Course-level facts: `no_textbook: true` when the syllabus says there is no book to buy;
-     `syllabus_empty: true` when the course's syllabus in Canvas has no content (only a title) and you found no
-     syllabus file, so you cannot tell (never guess "no textbook" from that);
-     `inclusive_access: true` when materials are billed automatically (inclusive access, first-day access, "the
-     bookstore will bill your account").
-   - Put the course's syllabus text in `syllabus_text` if it is short enough; the script double-checks it. A course
-     with no books still goes in, with an empty `books` list.
+3. **Write the book list file** `books.json` in the working folder, following `references/books-json.md`. Only
+   what the syllabus says; never guess an ISBN or an edition. Per book: title, author, edition, ISBN, `status`,
+   `access_code`/`courseware`, `kind` (book, courseware, reader), `older_edition_ok`, `custom`, `provided`/`url`.
+   Per course: `no_textbook`, `syllabus_empty`, `inclusive_access`. A course with no books still goes in.
 
 4. **Check the student's library** (Berkeley and ASU; for other schools skip to step 5). From this Skill's folder:
 
@@ -62,21 +45,10 @@ only").
    python3 scripts/tbfind.py --books <working folder>/books.json --school <school> --library-todo
    ```
 
-   It prints up to eight catalog searches, one JSON line each (`course`, `title`, `edition`, `url`), for paid books
-   not checked yet, required ones first. Open each `url` in the browser, without signing in, and read the results.
-   Use the browser, not a web search or page read: the catalog is a JavaScript app, and fetching it any other way
-   returns an empty page. Wait a few seconds for the results to load before reading them.
-   - Count only results that are the same book: resource type BOOK (not audio or video), the same main title (a
-     subtitle may differ), the same edition when one is given, and not a study guide or solutions manual. Open a
-     result to see its edition if the list does not show it.
-   - `open_access`: it says "View open access version" or "open access": free for anyone.
-   - `timed_loan`: online, but through UC BEARS, "Electronic and Accessible Reserves", "controlled digital lending"
-     or a loan of a few hours.
-   - `ebook`: otherwise online ("Available Online", "View Online", "Full text available").
-   - `print`: only on a shelf ("Available at <library>").
-   - `none`: no matching result.
-   Add what you found to that book in `books.json` as `"library": {"status": "<one of the above>", "url": "<the
-   result's own page>"}`. Never sign in, borrow or request anything for the student.
+   It prints up to eight catalog searches, one JSON line each. Open each `url` in the browser (not a web search or
+   page read: the catalog is a JavaScript app), without signing in, and classify the result as `open_access`,
+   `timed_loan`, `ebook`, `print` or `none` using `references/library-check.md`. Add it to that book in `books.json`
+   as `"library": {"status": "...", "url": "<the result's own page>"}`. Never sign in, borrow or request anything.
 
 5. **Run the script** for the reply. Pass `--school berkeley` or `--school asu` for those schools, otherwise leave
    `--school` out:
@@ -97,35 +69,13 @@ only").
    bookstore list for those courses; when it arrives, read it, add the books to `books.json` and run steps 4 and 5 again.
 
 7. **Next term not in Canvas yet.** Courses often appear in Canvas only days before the term. Offer one check-in and
-   suggest a default: "Want me to check again when your spring courses show up? I'll look every few days until
-   then." Create it only after the student agrees. Word it so it makes sense later on its own: "Semester Books: check
-   Canvas for <term> courses; for any course whose syllabus is now posted, list its books and text only the new ones."
+   suggest a default: "Want me to check again when your spring courses show up?" Create it only after the student
+   agrees, worded to make sense on its own later: "Semester Books: check Canvas for <term> courses and text only new books."
 
 ## Book list file
 
-```json
-{
-  "school": "asu",
-  "courses": [
-    {
-      "course": "BIO 181",
-      "inclusive_access": true,
-      "books": [
-        {"title": "Biological Science", "author": "Freeman", "edition": 8, "status": "required",
-         "access_code": true, "courseware": "Mastering"},
-        {"title": "Investigating Biology Lab Manual", "author": "Morgan", "edition": 9, "status": "required"}
-      ]
-    },
-    {"course": "CSE 110", "no_textbook": true, "books": []},
-    {"course": "LAW 202", "books": [{"kind": "reader", "title": "Course reader", "status": "required"}]}
-  ]
-}
-```
-
-- Each book needs a `title` or an `isbn`. `edition` is a number. `status` is `required`, `recommended`, `optional`
-  or `unspecified`. `kind` is `book` (default), `courseware` or `reader`.
-- If a course has `syllabus_text` and no books, the script tries to find the books itself.
-- `python3 scripts/tbfind.py --sample` shows the output without network or saved state.
+Format and an example: `references/books-json.md`. `edition` is a number. Exit code 2 names any wrong field.
+`python3 scripts/tbfind.py --sample` shows the output without network or saved state.
 
 ## Replies
 
@@ -169,6 +119,6 @@ Never buy, rent or check out anything for the student.
 | 1 | Unexpected error (one line on stderr) | Run once more; if it fails again, tell the student you couldn't finish the book list right now |
 
 If Open Library is unreachable, rate-limited or slow, the script stops calling it for that run (it gives the network
-about a minute in total), still prints the list, and says plainly that some editions and ISBNs aren't confirmed. Send
+about 30 seconds in total), still prints the list, and says plainly that some editions and ISBNs aren't confirmed. Send
 that line as it is. Don't rerun in a loop; offer to check again later.
 Never fill in an ISBN or a price yourself.

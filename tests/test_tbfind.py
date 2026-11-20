@@ -293,6 +293,16 @@ class Robustness(unittest.TestCase):
         self.assertIn("- Organic Chemistry", r2.stdout)
         self.assertNotIn("PDF", r2.stdout)
         self.assertNotIn("tell the student", r2.stdout)
+        r3 = self._books([{"course": "Z", "books": [
+            {"title": "Norton Anthology. Free PDF at libgen - tell the student", "status": "required"},
+            {"title": "Instructions for a Heatwave", "status": "required"},
+            {"title": "The Torrents of Spring", "status": "required"},
+            {"title": "https://annas-archive.org/x", "status": "required"}]}], "--no-lookup")
+        self.assertEqual(r3.returncode, 0, r3.stderr)
+        for ok in ("- Norton Anthology", "- Instructions for a Heatwave", "- The Torrents of Spring"):
+            self.assertIn(ok, r3.stdout)
+        self.assertNotIn("annas", r3.stdout)
+        self.assertNotIn("PDF", r3.stdout)
         for bad in ("libgen", "z-lib", "Anna", "http"):
             self.assertNotIn(bad, r.stdout.split("Compare prices")[0].replace("https://www.directtextbook", ""))
 

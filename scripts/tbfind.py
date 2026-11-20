@@ -46,9 +46,8 @@ BLOCKED = re.compile(r"libgen|library\s*genesis|z-?lib|1lib|annas?-?archive|anna
 
 
 # Text that should never reach the student from a book field: download offers and instructions aimed at Cubbie.
-SUSPECT = re.compile(r"free\s*(?:pdf|download|e-?book)|\bdownload (?:it|the|here|link|from)\b|\btorrents?\b|"
-                     r"tell the student|ignore (?:the|all|previous)|\binstructions? (?:for|to)\b|"
-                     r"you (?:must|should) (?:send|tell|say)", re.I)
+SUSPECT = re.compile(r"free\s*(?:pdf|download|e-?book)|\btell the student\b|\bignore (?:all |the )?(?:previous|above)\b|"
+                     r"\byou (?:must|should) (?:send|tell|say)\b", re.I)
 
 
 def _clean_text(v):
@@ -56,7 +55,7 @@ def _clean_text(v):
     like an instruction; keep the rest."""
     v = URL_RE.sub(" ", v)
     v = re.sub(r"[(\[]\s*(?:see|at|from|via|on)?\s*[)\]]", " ", v, flags=re.I)   # brackets left empty by a link
-    parts = re.split(r"\s*(?:[()\[\];|]|\s[-–—]\s|\s[-–—]$)\s*", v)
+    parts = re.split(r"\s*(?:[()\[\];|]|\.\s|\s[-–—]\s|\s[-–—]$)\s*", v)
     bad = [p for p in parts if BLOCKED.search(p) or SUSPECT.search(p)]
     if not bad:
         return " ".join(v.split()).strip(" -:,;") or None   # nothing to drop: keep the original punctuation
@@ -79,7 +78,7 @@ def _clean_book(b, where):
     if b.get("url") and BLOCKED.search(str(b["url"])):
         b["url"] = None
     if not (b.get("title") or b.get("isbn") or b.get("kind") == "reader"):
-        fail(f"{where} needs a title or an isbn", 2)
+        return None   # nothing left after cleaning: skip this entry, keep the rest of the list
     return b
 
 
@@ -110,7 +109,8 @@ def load_books_json(path):
             if b.get("status") and b["status"] not in report.STATUS_ORDER:
                 fail(f"courses[{i}].books[{j}].status must be one of {sorted(report.STATUS_ORDER)}", 2)
             b = _clean_book(b, f"courses[{i}].books[{j}]")
-            books.append(dict(b, isbns=[b["isbn"]] if b.get("isbn") else []))
+            if b:
+                books.append(dict(b, isbns=[b["isbn"]] if b.get("isbn") else []))
         flags = dict(c.get("flags") or {})
         for k in ("no_textbook", "inclusive_access", "see_bookstore", "course_reader", "syllabus_empty"):
             if k in c:
@@ -163,7 +163,7 @@ def main(argv=None):
         return 2
 
     for c in courses:
-        c["books"] = [_clean_book(b, c["course"] or "book") for b in c["books"]]
+        c["books"] = [x for x in (_clean_book(b, c["course"] or "book") for b in c["books"]) if x]
     result = report.build(courses, school=school, do_lookup=not a.no_lookup)
     if result.get("lookup_failed"):
         print(f"tbfind: stopped online lookups for this run ({result['lookup_failed']})", file=sys.stderr)

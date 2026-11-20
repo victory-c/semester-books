@@ -225,5 +225,86 @@ class Cli(unittest.TestCase):
         self.assertIn("vid=01UCS_BER:UCB", r.stdout)
 
 
+class Robustness(unittest.TestCase):
+    """Cases found by the round-1 test run on Multica."""
+
+    def setUp(self):
+        lookup._state.update(down=None, started=None)
+        self.cache = tempfile.mkdtemp()
+        self._old = (lookup.CACHE_DIR, lookup.OFFLINE)
+        lookup.CACHE_DIR, lookup.OFFLINE = self.cache, False
+
+    def tearDown(self):
+        lookup.CACHE_DIR, lookup.OFFLINE = self._old
+        lookup._state.update(down=None, started=None)
+
+    def _books(self, courses, *extra):
+        with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as f:
+            json.dump({"school": "berkeley", "courses": courses}, f)
+        env = dict(os.environ, TBFIND_CACHE=self.cache)
+        return subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "tbfind.py"), "--books", f.name, *extra],
+                              capture_output=True, text=True, cwd=ROOT, env=env)
+
+    def test_network_down_is_said_and_oer_hint_kept(self):
+        r = self._books([{"course": "CHEM 1A", "books": [
+            {"title": "Chemistry 2e", "author": "OpenStax", "status": "required", "note": "free online OpenStax"},
+            {"title": "Campbell Biology", "edition": 12, "status": "required"}]}], "--offline")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("couldn't reach the book database", r.stdout)
+        self.assertIn("free open textbook", r.stdout)
+
+    def test_429_stops_after_one_request(self):
+        import urllib.error, urllib.request
+        calls = []
+        def boom(*a, **k):
+            calls.append(1)
+            raise urllib.error.HTTPError("u", 429, "Too Many Requests", {}, None)
+        old, urllib.request.urlopen = urllib.request.urlopen, boom
+        try:
+            for t in ("A", "B", "C"):
+                lookup.identify({"title": t, "edition": 3})
+        finally:
+            urllib.request.urlopen = old
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(lookup.network_down(), "HTTP 429")
+
+    def test_corrupt_cache_is_ignored(self):
+        url = "https://openlibrary.org/isbn/9780000000000.json"
+        os.makedirs(self.cache, exist_ok=True)
+        with open(lookup._cache_path(url), "w") as f:
+            f.write('{"t": 1, "data": ')
+        self.assertIsNone(lookup._read_cache(lookup._cache_path(url)))
+
+    def test_edition_as_text(self):
+        r = self._books([{"course": "X", "books": [{"title": "Some Book", "edition": "5th"}]}], "--no-lookup")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("5th ed", r.stdout)
+        r = self._books([{"course": "X", "books": [{"title": "Some Book", "edition": "latest"}]}], "--no-lookup")
+        self.assertEqual(r.returncode, 2)
+
+    def test_links_and_shadow_libraries_never_echoed(self):
+        r = self._books([{"course": "X", "books": [
+            {"title": "Biology https://libgen.is/book/123 (free on Anna's Archive)", "status": "required",
+             "provided": True, "url": "https://z-lib.org/b/1"}]}], "--no-lookup")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        for bad in ("libgen", "z-lib", "Anna", "http"):
+            self.assertNotIn(bad, r.stdout.split("Compare prices")[0].replace("https://www.directtextbook", ""))
+
+    def test_summary_names_the_coded_item(self):
+        res = report.build([{"course": "CHEM 1A", "flags": {}, "books": [
+            {"title": "Chemistry", "status": "required", "isbns": []},
+            {"kind": "courseware", "title": "Labflow", "courseware": "Labflow", "status": "required"}]}],
+            school="berkeley", do_lookup=False)
+        self.assertIn("CHEM 1A: Labflow", report.to_summary(res))
+
+    def test_unsure_isbn_names_books(self):
+        res = report.build([{"course": "ECON 1", "flags": {}, "books": [
+            {"title": "Book One", "status": "required", "isbns": []},
+            {"title": "Book Two", "status": "required", "isbns": []}]}], school="berkeley", do_lookup=False)
+        for b in res["courses"][0]["books"]:
+            b["confidence"] = "title-only"
+        self.assertIn("ISBN for Book One, Book Two", report.to_text(res))
+
+
 if __name__ == "__main__":
     unittest.main()

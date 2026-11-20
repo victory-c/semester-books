@@ -11,10 +11,12 @@ Exit codes (for the Skill):
   0  results printed (some courses may still need input; see totals.need_input)
   2  bad input: a file is missing or the book list is not valid JSON / wrong shape
   3  no books and no "no textbook" answer for any course: ask the student for a bookstore screenshot
+  1  unexpected error (message on stderr)
 """
 import argparse
 import json
 import os
+import re
 import sys
 
 from tbfind import extract, lookup, report
@@ -35,6 +37,33 @@ def load_syllabus(spec):
         raw = f.read()
     name = course or os.path.splitext(os.path.basename(path))[0].replace("_", " ").upper()
     return extract.extract(raw, course=name)
+
+
+URL_RE = re.compile(r"(?:https?://|www\.)\S+", re.I)
+# Shadow libraries / file-sharing sites: never repeated to the student, whatever the syllabus or agent wrote.
+BLOCKED = re.compile(r"libgen|library\s*genesis|z-?lib|1lib|annas?-?archive|anna's archive|welib|pdfdrive|"
+                     r"sci-?hub|b-ok\.|bookfi|ebook-?hunter|vk\.com", re.I)
+
+
+def _clean_book(b, where):
+    """Normalise one agent-written book: edition as a number, no links or blocked sites in text fields."""
+    b = dict(b)
+    ed = b.get("edition")
+    if ed is not None and not isinstance(ed, int):
+        n = lookup.edition_number(str(ed))
+        if n is None:
+            fail(f"{where}.edition must be a number like 5 (got {ed!r})", 2)
+        b["edition"] = n
+    for k in ("title", "author", "courseware", "publisher", "note", "raw"):
+        if isinstance(b.get(k), str):
+            v = URL_RE.sub("", b[k])
+            v = BLOCKED.sub("", v) if BLOCKED.search(v) else v
+            b[k] = " ".join(v.split()).strip(" -:,;") or None
+    if b.get("url") and BLOCKED.search(str(b["url"])):
+        b["url"] = None
+    if not (b.get("title") or b.get("isbn") or b.get("kind") == "reader"):
+        fail(f"{where} needs a title or an isbn", 2)
+    return b
 
 
 def load_books_json(path):
@@ -63,6 +92,7 @@ def load_books_json(path):
                 fail(f"courses[{i}].books[{j}].kind must be one of {list(report.KINDS)}", 2)
             if b.get("status") and b["status"] not in report.STATUS_ORDER:
                 fail(f"courses[{i}].books[{j}].status must be one of {sorted(report.STATUS_ORDER)}", 2)
+            b = _clean_book(b, f"courses[{i}].books[{j}]")
             books.append(dict(b, isbns=[b["isbn"]] if b.get("isbn") else []))
         flags = dict(c.get("flags") or {})
         for k in ("no_textbook", "inclusive_access", "see_bookstore", "course_reader", "syllabus_empty"):
@@ -115,6 +145,8 @@ def main(argv=None):
         p.print_help()
         return 2
 
+    for c in courses:
+        c["books"] = [_clean_book(b, c["course"] or "book") for b in c["books"]]
     result = report.build(courses, school=school, do_lookup=not a.no_lookup)
     if a.json:
         os.makedirs(os.path.dirname(os.path.abspath(a.json)), exist_ok=True)
@@ -139,4 +171,8 @@ def main(argv=None):
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        sys.exit(main())
+    except Exception as e:   # never leave the agent with a bare traceback
+        print(f"tbfind failed: {type(e).__name__}: {e}", file=sys.stderr)
+        sys.exit(1)

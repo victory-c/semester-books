@@ -20,10 +20,24 @@ CACHE_DIR = os.environ.get("TBFIND_CACHE", os.path.join(os.path.expanduser("~"),
 CACHE_TTL = 7 * 24 * 3600   # book metadata barely changes
 _last_call = [0.0]
 OFFLINE = os.environ.get("TBFIND_OFFLINE") == "1"
+TIMEOUT = 6            # seconds per request
+BUDGET = 60            # seconds of network time for one run; after that, finish with what we have
+_state = {"down": None, "started": None}   # down: why the network was given up on (shared by the whole run)
 
 
 class LookupError_(Exception):
     pass
+
+
+def network_down():
+    """Why lookups were skipped in this run (None if they all went through)."""
+    return _state["down"]
+
+
+def _give_up(reason):
+    if not _state["down"]:
+        _state["down"] = reason
+    raise LookupError_(reason)
 
 
 def _cache_path(url):
@@ -31,40 +45,64 @@ def _cache_path(url):
     return os.path.join(CACHE_DIR, hashlib.sha1(url.encode()).hexdigest() + ".json")
 
 
-def get_json(url, ttl=CACHE_TTL):
-    path = _cache_path(url)
-    if os.path.exists(path):
+def _read_cache(path):
+    try:
         with open(path) as f:
             hit = json.load(f)
-        if OFFLINE or time.time() - hit["t"] < ttl:
-            return hit["data"]
+        return hit if isinstance(hit, dict) and "t" in hit else None
+    except (OSError, ValueError):
+        return None   # missing or half-written: treat as not cached
+
+
+def _write_cache(path, data, url):
+    try:
+        os.makedirs(CACHE_DIR, exist_ok=True)
+        tmp = f"{path}.{os.getpid()}.tmp"
+        with open(tmp, "w") as f:
+            json.dump({"t": time.time(), "url": url, "data": data}, f)
+        os.replace(tmp, path)   # atomic, so a parallel run never reads half a file
+    except OSError:
+        pass   # a cache we can't write only costs speed
+
+
+def get_json(url, ttl=CACHE_TTL):
+    path = _cache_path(url)
+    hit = _read_cache(path)
+    if hit and (OFFLINE or time.time() - hit["t"] < ttl):
+        return hit["data"]
+    try:
+        return _fetch(url, path)
+    except LookupError_:
+        if hit:
+            return hit["data"]   # stale beats nothing when the network is gone
+        raise
+
+
+def _fetch(url, path):
     if OFFLINE:
-        raise LookupError_("offline and not cached: " + url)
-    wait = 1.05 - (time.time() - _last_call[0])   # Open Library: about 1 request/second, counted from each start
+        _give_up("offline")
+    if _state["down"]:
+        raise LookupError_(_state["down"])
+    now = time.time()
+    _state["started"] = _state["started"] or now
+    if now - _state["started"] > BUDGET:
+        _give_up("too slow")
+    wait = 1.05 - (now - _last_call[0])   # Open Library: about 1 request/second, counted from each start
     if wait > 0:
         time.sleep(wait)
     _last_call[0] = time.time()
     req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept": "application/json"})
-    data = None
-    for attempt in range(2):
-        try:
-            with urllib.request.urlopen(req, timeout=15) as r:
-                data = json.load(r)
-            break
-        except urllib.error.HTTPError as e:
-            if e.code == 404:
-                data = None
-                break
-            if attempt:
-                raise LookupError_(f"HTTP {e.code} for {url}")
-            time.sleep(2)
-        except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as e:
-            if attempt:
-                raise LookupError_(f"{type(e).__name__} for {url}")
-            time.sleep(2)
-    os.makedirs(CACHE_DIR, exist_ok=True)
-    with open(path, "w") as f:
-        json.dump({"t": time.time(), "url": url, "data": data}, f)
+    try:
+        with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
+            data = json.load(r)
+    except urllib.error.HTTPError as e:
+        if e.code != 404:
+            # 429 or a server error: stop for this run instead of retrying every book.
+            _give_up(f"HTTP {e.code}")
+        data = None
+    except (urllib.error.URLError, TimeoutError, OSError, ValueError) as e:
+        _give_up(type(e).__name__)
+    _write_cache(path, data, url)
     return data
 
 
@@ -261,7 +299,7 @@ def openstax_match(title, isbns=(), allow_title=False):
     try:
         books = openstax_catalog()
     except LookupError_:
-        return None
+        return {"unchecked": True}   # catalog unreachable: the caller decides what to tell the student
     want = _norm(title)
     for b in books:
         ids = {b.get("print_isbn_13"), b.get("digital_isbn_13")}

@@ -1,6 +1,6 @@
 ---
 name: semester-books
-description: Lists the books each of the student's courses needs this term, read from the course syllabi in Canvas, with the exact edition, access code warnings, free copies and a price-comparison link. Use when the student asks what books or materials they need, whether they have to buy a book, what a course requires, or is getting ready for a new term, and right after Canvas finishes its first sync.
+description: Use when a student asks what books or materials their courses need, whether to buy a book, or right after Canvas first syncs; lists books, editions, access codes, free copies and price links. It reads the syllabi in Canvas, confirms editions, flags access codes and inclusive access, finds free and library copies, and links to a price-comparison page.
 ---
 
 # Semester Books
@@ -137,7 +137,9 @@ comparison link) instead of stopping at "I couldn't find one".
 Keep it short and plain, no Markdown. One course per block, links on their own line. Lead with the count of books
 and how many are free. If there are more than six courses or twelve books, add `--full-text <working folder>/full.txt`
 to the run command: it prints a one-screen summary to text, and writes the full list to `full.txt`. Make a PDF from
-`full.txt`, send it, then text the summary.
+`full.txt`, send it, then text the summary. If you can't make a PDF in the sandbox (pypdf can't write one from text),
+send `full.txt` as a file instead. Replies over about 4,000 characters are split into several bubbles, so prefer the
+summary mode over one long text.
 
 When the library has an ebook, lead that book with it: it is free with the student's campus login. Say plainly
 when it is only a short timed loan, and that some library ebooks allow only a few readers at once.
@@ -164,6 +166,9 @@ Never buy, rent or check out anything for the student.
 | 0 | Done (some courses may still need a screenshot) | Reply; ask for screenshots for the courses it names |
 | 2 | `books.json` is missing, not JSON, or a field is wrong (the message names it) | Fix the file and run again; do not show the error to the student |
 | 3 | No books found in any course | Ask for a screenshot of the bookstore book list or the course codes |
+| 1 | Unexpected error (one line on stderr) | Run once more; if it fails again, tell the student you couldn't finish the book list right now |
 
-If Open Library cannot be reached, the script still prints the list, marks the ISBNs it could not check, and says so.
+If Open Library is unreachable, rate-limited or slow, the script stops calling it for that run (it gives the network
+about a minute in total), still prints the list, and says plainly that some editions and ISBNs aren't confirmed. Send
+that line as it is. Don't rerun in a loop; offer to check again later.
 Never fill in an ISBN or a price yourself.

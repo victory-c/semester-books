@@ -38,7 +38,10 @@ def resolve_book(book, school, do_lookup=True, oer_hint=False):
         line = " ".join(str(book.get(k) or "") for k in ("raw", "author", "title", "publisher", "note")).lower()
         hint = oer_hint or any(w in line for w in ("openstax", "free online", "open textbook", "oer"))
         stax = lookup.openstax_match(title or "", set(isbns), allow_title=hint)
-        if stax:
+        if stax and stax.get("unchecked"):
+            if hint:   # the syllabus itself says it's open/free, but we couldn't fetch the link
+                free = {"kind": "oer_unconfirmed", "url": book.get("url")}
+        elif stax:
             free = {"kind": "openstax", "title": stax["title"], "url": stax["url"]}
         elif info.get("public_domain_url"):
             free = {"kind": "public_domain", "url": info["public_domain_url"]}
@@ -100,6 +103,7 @@ def build(courses, school=None, do_lookup=True):
         if not books and flags.get("courseware"):
             n_code += 1
         out["courses"].append({"course": c.get("course"), "state": state, "books": books, "flags": flags})
+    out["lookup_failed"] = lookup.network_down() if do_lookup else None
     out["totals"] = {"courses": len(courses), "books": n_books, "free": n_free, "access_code": n_code,
                      "library_ebook": n_lib,
                      "need_input": [c["course"] for c in out["courses"] if c["state"] == "not_found"]}
@@ -125,6 +129,10 @@ def _ed(n):
     return f"{n}{suf} ed"
 
 
+LOOKUP_FAILED = ("I couldn't reach the book database just now, so some editions and ISBNs aren't confirmed and I may "
+                 "have missed a free copy. Ask me again in a bit and I'll recheck.")
+
+
 def to_text(result):
     """Plain text, no Markdown, links on their own line: how Cubbie would text it."""
     t = result["totals"]
@@ -136,7 +144,10 @@ def to_text(result):
         head += f" {t['free']} {'is' if t['free'] == 1 else 'are'} free."
     if t.get("library_ebook"):
         head += f" {t['library_ebook']} you can read free through the library."
-    lines += [head, ""]
+    lines += [head]
+    if result.get("lookup_failed"):
+        lines.append(LOOKUP_FAILED)
+    lines.append("")
     for c in result["courses"]:
         lines.append(c["course"] or "Course")
         f = c["flags"]
@@ -170,6 +181,12 @@ def to_text(result):
             if b["isbn"]:
                 lines.append(f"  ISBN {b['isbn']}")
             if b["free"]:
+                if b["free"]["kind"] == "oer_unconfirmed":
+                    lines.append("  The syllabus says this is a free open textbook. I couldn't load its link just now, "
+                                 "so check the course site before buying anything.")
+                    if b["free"].get("url"):
+                        lines.append(f"  {b['free']['url']}")
+                    continue
                 what = {"openstax": "free on OpenStax", "public_domain": "public domain, free to read",
                         "provided": "provided free by the course"}[b["free"]["kind"]]
                 if b["free"].get("url"):
@@ -211,7 +228,10 @@ def to_text(result):
         unsure = [b for b in c["books"] if b["kind"] == "book" and not b["free"]
                   and b["confidence"] not in CONFIDENT and b["confidence"] != "skipped"]
         if unsure:
-            which = "these" if len(unsure) > 1 else "this one"
+            if len(c["books"]) == 1:
+                which = "this one"
+            else:
+                which = ", ".join(b["title"] or "one book" for b in unsure)
             lines.append(f"I couldn't confirm the ISBN for {which}. Match the edition with the bookstore list before buying.")
         if f.get("course_reader") and not any(b["kind"] == "reader" for b in c["books"]):
             lines.append("This course has a course reader. That one is usually only sold through the campus copy shop or bookstore.")
@@ -245,12 +265,17 @@ def to_summary(result):
             else:
                 free.append(name)
             continue
-        first = paid[0]
-        label = first["title"] or "a book"
+        coded = [b for b in paid if b["access_code"]]
+        first = coded[0] if coded else paid[0]   # name the item the code is actually for
+        label = first["title"] or first.get("courseware") or "a book"
+        if coded and first["kind"] == "book" and first.get("courseware"):
+            label += f" (code: {first['courseware']})"
         if len(paid) > 1:
             label += f" + {len(paid) - 1} more"
-        (code if any(b["access_code"] for b in paid) else buy).append(f"{name}: {label}")
+        (code if coded else buy).append(f"{name}: {label}")
     lines = [f"Your {t['courses']} courses: {t['books']} books to look at. Full list with links is in the PDF."]
+    if result.get("lookup_failed"):
+        lines.append(LOOKUP_FAILED)
     if code:
         lines.append("Need an access code (a used book won't have one):")
         lines += [f"- {x}" for x in code]

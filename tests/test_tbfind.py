@@ -324,5 +324,18 @@ class Robustness(unittest.TestCase):
         self.assertIn("ISBN for Book One, Book Two", report.to_text(res))
 
 
+
+class SkillLimits(unittest.TestCase):
+    """Built-in Skill limits in Cubbie's app/skills/validate.py: SKILL.md up to 8 KB, description up to 320 bytes."""
+
+    def test_skill_md_fits_built_in_limits(self):
+        with open(os.path.join(ROOT, "SKILL.md"), "rb") as f:
+            raw = f.read()
+        self.assertLessEqual(len(raw), 8000)
+        front = raw.split(b"---")[1]
+        desc, = [l for l in front.splitlines() if l.startswith(b"description:")]
+        self.assertLessEqual(len(desc[len(b"description:"):].strip()), 320)
+
+
 if __name__ == "__main__":
     unittest.main()

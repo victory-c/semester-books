@@ -26,6 +26,8 @@ only").
    asking about next term, use next term's courses if Canvas already shows them.
    If Canvas is not connected, ask the student to connect it, or to send a screenshot of their bookstore book list or
    their course codes (default: "Send me a screenshot of your bookstore list"). Then stop and wait.
+   Reuse an earlier list of the same courses only if you know it is under a week old; say the date you checked. If
+   not, if a course had no book list or a library result was unconfirmed, or the student asks to recheck, do every step again.
 
 2. **Read each course's book list.** For each course, read the syllabus page, and search the course files and pages
    for "syllabus", "textbook", "required materials" or "course materials"; read the PDF if the syllabus is a file.
@@ -59,7 +61,7 @@ only").
 
    It checks each ISBN and edition against Open Library, finds free OpenStax and public-domain copies, turns your
    library findings into plain lines, flags access codes, inclusive access and course readers, and prints the reply
-   text. It needs no setup or key (Python standard library only).
+   text.
 
    Then send the script's text as the reply (see "Replies"). You may translate it into the student's language,
    but do not shorten it or drop anything: every price-comparison link, library link and warning stays. Use only
@@ -75,7 +77,6 @@ only").
 ## Book list file
 
 Format and an example: `references/books-json.md`. `edition` is a number. Exit code 2 names any wrong field.
-`python3 scripts/tbfind.py --sample` shows the output without network or saved state.
 
 ## Replies
 
